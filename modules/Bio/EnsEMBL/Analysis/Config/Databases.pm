@@ -92,16 +92,16 @@ use vars qw(%Config);
     REFERENCE_DB => {
       -dbname => 'kb15_human_cdnaupdate79_pipeline',
       -host => 'genebuild3',
-      -pass => 'ensembl',
+      -pass => '',
       -port => 3306,
-      -user => 'ensadmin'
+      -user => ''
     },
     ESTCDNA_DB => {
       -dbname => 'kb15_human_cdnaupdate79_data',
       -host => 'genebuild1',
-      -pass => 'ensembl',
+      -pass => '',
       -port => 3306,
-      -user => 'ensadmin'
+      -user => ''
     },
     KILL_LIST_DB => {
       -dbname => 'gb_kill_list',
