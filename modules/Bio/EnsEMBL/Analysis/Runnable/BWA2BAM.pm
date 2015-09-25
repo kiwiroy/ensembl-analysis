@@ -148,6 +148,9 @@ sub run {
     $self->throw("Genome file must be indexed \ntry " . $self->program . " index " . $self->genome ."\n"); 
   }
   
+  # kb15 add this line to fix -r header problem
+  $readgroup =~ s/\t/\\t/g  ;
+
   $command = "$program $method $readgroup " . $self->genome .
     " $outdir/$filename.sai $fastq  \| $samtools  view - -b -S -o $outdir/$outfile.bam ";
   if ( $fastqpair ) {

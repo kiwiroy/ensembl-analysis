@@ -82,13 +82,22 @@ sub new {
 sub fetch_input{
   my ($self) = @_;
 
+  print "BKDEBUG::runnableDB::lincRNAEvaluator 1 \n";
+  
   # Fetch sequence/slice 
 
   $self->query($self->fetch_sequence); 
 
   # Get lincRNA candidate genes and break each of them down into single-transcript genes:
 
+  print "BKDEBUG::runnableDB::lincRNAEvaluator 2 \n";
+
   my $lincrna_genes = $self->get_genes_of_biotypes_by_db_hash_ref($self->LINCRNA_DB);
+  # foreach my $gene (@{$lincrna_genes}) {
+  	# print $gene->display_id, "\t", $gene->adaptor->dbc->dbname, , "\t", $gene->adaptor->dbc->host, "\n";
+  # }
+
+  print "BKDEBUG::runnableDB::lincRNAEvaluator 3 \n";
   
   my @single_transcript_lincrna_genes = @{$self->create_single_transcript_genes($lincrna_genes)}; 
   print "Made ". scalar(@single_transcript_lincrna_genes) . " single_transcript genes, broken down from " . scalar(@$lincrna_genes) .
@@ -366,7 +375,13 @@ sub create_single_transcript_genes{
   my @single_transcript_genes; 
 
  GENE:foreach my $gene(@$genes){ 
-    my @tr = @{$gene->get_all_Transcripts}; 
+ 	
+ 	print "BKDEBUG::runnableDB::lincRNAEvaluator::create_single_transcript_genes gene: " . $gene->dbID . " biotype: " . $gene->biotype . " source: " . $gene->source . " \n"; 
+ 	
+ 	my @tr = @{$gene->get_all_Transcripts}; 
+
+  	print "BKDEBUG::runnableDB::lincRNAEvaluator::create_single_transcript_genes number of transcripts: " . scalar(@tr) . " \n";
+
     if ( @tr == 1 ) {  
       push @single_transcript_genes, $gene ; 
     } else { 

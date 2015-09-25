@@ -627,13 +627,14 @@ foreach my $row (@rows) {
 # store paired input ids
 foreach my $key ( keys %pairs ) {
   my $iid;
+  print "KEy $key \n";
   throw("Cannot parse file names using regex $regex for lanes $key\n")
     unless scalar( keys %{ $pairs{$key} } == 3 );
   foreach my $key2 ( keys %{ $pairs{$key} } ) {
     next if $key2 eq 'ANALYSIS';
     $iid .= $pairs{$key}->{$key2} . ":";
-    #print "KEy $key2 $key $iid\n";
-    #print $pairs{$key}->{ANALYSIS}->logic_name."\n";
+    print "KEy $key2 $key $iid\n";
+    print $pairs{$key}->{ANALYSIS}->logic_name."\n";
   }
   $iid =~ s/:$//;
   $sic->store_input_id_analysis( $iid, $pairs{$key}->{ANALYSIS}, "dummy" )
@@ -984,7 +985,7 @@ $str
   print BATCHQUEUE "       {
              logic_name => 'bwa_" . $row->{ID} ."',
              output_dir => '".$output_dir ."/".$row->{ID}."_pipeline',
-             memory    => [ '5GB', '10GB', '20GB','30GB' ],
+             memory    => [ '8GB', '10GB', '20GB','30GB' ],
              resource  => 'rusage[myens_".$ref_load."tok=25]',
        },
        {
@@ -995,7 +996,7 @@ $str
        {
              logic_name => 'bwa2bam_" . $row->{ID} ."',
              output_dir => '".$output_dir ."/".$row->{ID}."_pipeline',
-             memory    => [ '2GB', '5GB', '10GB', '20GB', '30GB' ],
+             memory    => [ '12GB', '15GB', '20GB', '25GB', '30GB' ],
              resource  => 'rusage[myens_".$ref_load."tok=25]',
        },
        {
@@ -1012,7 +1013,7 @@ $str
              logic_name => 'refine_" . $tissue_by_id{$row->{ID}} ."',
              output_dir => '".$output_dir ."/refine_".$row->{ID}."_pipeline',
              batch_size => ".$slice_batches.",
-             memory    => [ '1GB', '2GB', '5GB', '15GB','30GB' ],
+             memory    => [ '2GB', '3GB', '5GB', '15GB','30GB' ],
              resource  => 'rusage[myens_".$ref_load."tok=25:myens_".$refine_load."tok=25]',
        },
 " if  $RNASEQCONFIG->{SINGLE_TISSUE} &! $seen{$tissue_by_id{$row->{ID}}};  ;

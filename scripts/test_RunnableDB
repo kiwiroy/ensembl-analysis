@@ -187,6 +187,8 @@ if(!$analysis){
   
 }
 
+print STDERR "DEBUG_BK::test_RunnableDB start \n" if($verbose);
+
 my $runnable;
 my $file;
 if($analysis->module =~ "Bio::"){ 
@@ -211,6 +213,7 @@ my $runobj = "$runnable"->new(-db    => $db,
                               -analysis => $analysis,
                              );
 print STDERR "Instantiated ".$runnable." runnabledb\n" if($verbose);
+
 $runobj->fetch_input;
 print STDERR "Fetched input\n" if($verbose);
 $runobj->run unless($runobj->input_is_void);
@@ -221,17 +224,21 @@ if($write){
   print STDERR "written output\n" if($verbose);
 }
 
+print STDERR "DEBUG_BK::test_RunnableDB write finish if write is allowed!!  \n" if($verbose); 
 
 my @output = @{$runobj->output};
 
 #$verbose = 1;
 if($verbose){
   foreach my $out (@output) { 
+    # print STDERR "DEBUG_BK::test_RunnableDB 11 " . $out->display_id  . " print \n";
+
     if ($out->isa("Bio::EnsEMBL::Gene")) {
       print_gene($out);
       print "\n";
     } else {
-      #print $out->slice;
+      
+      print $out->slice;
       my $name;
       if ($out->slice) {
         my @values = split /\:/, $out->slice;
@@ -239,16 +246,19 @@ if($verbose){
       } else {
         $name = 'no_slice_name';
       }
+    
       print_feature($out, $name, $logic_name);
     }
   }
 }
-print "There were ".@output." features found\n\n";
 
+print "There were ".@output." features will be stored/ have beed stored (IF WRITE IS ALLOWED!!)\n";
 
 sub print_gene {
   my $out = shift;
 
+
+  # print "BK_DEBUG::test_RunnableDB gene is: " . $out->display_id . " .. \n ";
   printf("%s\t$logic_name\tGene\t%d\t%d\t%s\n",
          $out->slice->seq_region_name,
          $out->start,

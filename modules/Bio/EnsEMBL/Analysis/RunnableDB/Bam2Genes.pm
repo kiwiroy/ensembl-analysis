@@ -43,6 +43,7 @@ package Bio::EnsEMBL::Analysis::RunnableDB::Bam2Genes;
 
 use warnings ;
 use strict;
+use Data::Dumper;
 
 use Bio::EnsEMBL::Analysis::RunnableDB;
 use Bio::EnsEMBL::Analysis::RunnableDB::BaseGeneBuild;
@@ -134,6 +135,7 @@ sub run {
   if ( $transcripts ) {
     # Now we have collapsed our reads we need to make sure we keep the connections between
     # them so we can make our fake transcripts
+    print "DEBUG::BAM2GENES::run:: number of transcripts 1: " . scalar(@$transcripts) . "\n"; 
     print STDERR "Found " . scalar(@$transcripts) . " transcripts \n";
     foreach my $transcript ( @$transcripts ) {
       #print  STDERR scalar(@$exon_cluster) ." exon clusters\n";
@@ -229,6 +231,7 @@ sub process_exon_clusters {
 
   unless ( $self->PAIRED ) {
     # if we are using unpaired reads then just link clusters separated by <= MAX_INTRON_LENGTH
+    # if they are paired then it doesn't use the MAX_INTRON_LENGTH and goes with pair information
     my @clusters = sort { $a->start <=> $b->start } values %{$exon_clusters} ;
     my @transcript;
     my @transcripts;
@@ -260,6 +263,8 @@ sub process_exon_clusters {
     my $left_cluster = $exon_clusters->{$clusters[0]}->hseqname;
     for (my $i = 1; $i < @clusters ; $i ++ ) {
       my $right_cluster =  $exon_clusters->{$clusters[$i]}->hseqname;
+
+      print "DEBUG::BAM2GENES::right:: " . $cluster_hash->{$left_cluster}->{$right_cluster} . " -->  "  . $right_cluster . "\n";
       $cluster_hash->{$left_cluster}->{$right_cluster} ++
 	unless $left_cluster eq $right_cluster;
     }
@@ -359,12 +364,16 @@ sub exon_cluster {
     if ( $regex && $name =~ /(\S+)($regex)$/ ) {
        $name = $1;
     }
+    
     # ignore spliced reads
     # make exon clusters and store the names of the reads and associated cluster number
     for (my $index = @exon_clusters; $index > 0; $index--) {
       my $exon_cluster = $exon_clusters[$index-1];
+      # print "DEBUG::BAM2GENES:: exon :" .  $exon_cluster . "\n";
+      # print Dumper($exon_cluster) . "\n";
+      
       if ( $start <= $exon_cluster->end+1 &&  $end >= $exon_cluster->start-1 ) {
-        # Expand the exon_cluster
+        # Expand the exon_cluster $start is the start of the read and $end is the end of the read 
         $exon_cluster->start($start) if $start < $exon_cluster->start;
         $exon_cluster->end($end)     if $end   > $exon_cluster->end;
         $exon_cluster->score($exon_cluster->score + 1);

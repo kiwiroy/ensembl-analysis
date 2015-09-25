@@ -302,21 +302,37 @@ sub get_genes_of_biotypes_by_db_hash_ref {
 
   my @genes_to_fetch;  
 
+  print "BKDEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref \n";
+
   foreach my $db_hash_key ( keys %dbnames_2_biotypes )  {
 
     my @biotypes_to_fetch = @{$dbnames_2_biotypes{$db_hash_key}};  
 
+    print "BKDEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref number of biotypes to fetch: " . scalar(@biotypes_to_fetch)  . " \n";
+
     my $set_db = $self->get_dbadaptor($db_hash_key); 
     my $slice = $self->fetch_sequence($self->input_id, $set_db)  ;
+    
+    print "BKDEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref:set_db: $set_db !! \n";
     
     # implementation of fetch_all_biotypes ....  
     my $fetch_all_biotypes_flag ; 
     foreach my $biotype  ( @biotypes_to_fetch ) {   
       if ($biotype=~m/fetch_all_biotypes/ ) {    
         $fetch_all_biotypes_flag = 1 ; 
+        print "BKDEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref: YES all biotypes!! \n";
       }
     }  
-    if ( $fetch_all_biotypes_flag ) {  
+    if ( $fetch_all_biotypes_flag ) {
+
+         print "BKDEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref: if 1!! with all biotypes !! \n";
+  
+         my @genes_temp = @{$slice->get_all_Genes_by_type(undef,undef,1)};       
+         foreach my $gene_tmp (@genes_temp) {
+         	print $gene_tmp->display_id, "\t", $gene_tmp->adaptor->dbc->dbname, , "\t", $gene_tmp->adaptor->dbc->host, "\n";
+            print "number of transcripts: " . scalar(@{$gene_tmp->get_all_Transcripts}) . " \n";
+         }
+    	  
          print "fetching ALL biotypes for slice out of db $db_hash_key :\n" ; 
          my $genes = $slice->get_all_Genes(undef,undef,1) ; 
          push @genes_to_fetch, @$genes;  
@@ -329,7 +345,12 @@ sub get_genes_of_biotypes_by_db_hash_ref {
          }  
          print scalar(@genes_to_fetch) . " genes fetched in total\n" ; 
     } else { 
+
       foreach my $biotype  ( @biotypes_to_fetch ) {  
+
+      print "\nBKDEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref: else!! with few biotypes !! biotype: " . $biotype . "\n";
+       
+         
          my $genes = $slice->get_all_Genes_by_type($biotype,undef,1);
          if ( @$genes == 0 ) {
            warning("No genes of biotype $biotype found in $set_db\n");
@@ -341,6 +362,16 @@ sub get_genes_of_biotypes_by_db_hash_ref {
       }  
     }  
   } 
+  
+  print "BKDEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref: how many genes fetched:" . scalar(@genes_to_fetch) . "\n";  
+
+  for my $gtmp ( @genes_to_fetch ) {    
+
+      print "BK_DEBUG::BaseGeneBuild::get_genes_of_biotypes_by_db_hash_ref this is gene: " . $gtmp->id() . " " . $gtmp->dbID() . " " . $gtmp->display_id() . "\n"; 
+  
+  }
+
+
   return \@genes_to_fetch;
 }
 

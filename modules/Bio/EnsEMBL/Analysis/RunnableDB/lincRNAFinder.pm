@@ -55,6 +55,8 @@ use Bio::EnsEMBL::Analysis::Tools::Logger;
 use Bio::EnsEMBL::Analysis::Tools::GeneBuildUtils qw(id coord_string lies_inside_of_slice);
 use Bio::EnsEMBL::Analysis::Tools::GeneBuildUtils::GeneUtils ;
 
+use Data::Dumper; # BK entry
+
 
 @ISA = qw(Bio::EnsEMBL::Analysis::RunnableDB::BaseGeneBuild Bio::EnsEMBL::Analysis::RunnableDB);
 
@@ -107,21 +109,34 @@ sub fetch_input{
 
   # add hash-keys and hash-values directly to the $runnable hashref. quicker than using constructors...
 
+  # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: fetch input :: 1A !! ...\n\n";
   $runnable->set_1_cdna_genes(\@single_transcript_cdnas);
   $runnable->set_2_prot_genes(\@single_trans_pc);  
-  $runnable->efg_simple_feature_genes($self->get_efg_simple_features); 
+  # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: fetch input :: 1B !! ...\n\n";
+  # I don't want to load those efg genes
+  # $runnable->efg_simple_feature_genes($self->get_efg_simple_features); 
+  
+  # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: fetch input :: 2o !! ...\n\n";
   
   $runnable->ignore_strand($self->CDNA_CODING_GENE_CLUSTER_IGNORE_STRAND);
   $runnable->find_single_exon_candidates($self->FIND_SINGLE_EXON_LINCRNA_CANDIDATES);
+
+  # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: fetch input :: 3o !! ...\n\n";
   
   $runnable->check_cdna_overlap_with_both_K4_K36($self->CHECK_CDNA_OVERLAP_WITH_BOTH_K4_K36);
   $runnable->check_cdna_overlap_with_multiple_K36($self->CHECK_CDNA_OVERLAP_WITH_MULTI_K36);
 
+  # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: fetch input :: 4o !! ...\n\n";
+
   $runnable->maximum_translation_length_ratio($self->MAXIMUM_TRANSLATION_LENGTH_RATIO); 
-  $runnable->max_translations_stored_per_gene($self->MAX_TRANSLATIONS_PER_GENE) ;
+  $runnable->max_translations_stored_per_gene($self->MAX_TRANSLATIONS_PER_GENE) ; 
+
+  # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: fetch input :: 5o !! ...\n\n";
   
   $runnable->efg_clustering_with_cdna_analysis($self->create_analysis_object($self->DEBUG_LG_EFG_CLUSTERING_WITH_CDNA)) ; 
   $runnable->unclustered_efg_analysis( $self->create_analysis_object($self->DEBUG_LG_EFG_UNCLUSTERED));
+
+  # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: fetch input :: 6o !! ...\n\n";
 
   $self->runnable($runnable);  
 };
@@ -158,6 +173,8 @@ sub write_output{
   if ( $self->WRITE_DEBUG_OUTPUT ) {
     $self->update_efg_and_cdna_db() ;
   }
+
+  # print "\nnBK_DEBUG::lincRNAFinder:: write_output \n\n";
 
   my $ga = $self->output_db->get_GeneAdaptor;
 
@@ -220,6 +237,7 @@ sub output_db{
 sub get_efg_simple_features {  
   my ( $self ) = @_ ;  
 
+  # print "BK DEBUG::lincRNAFinder:: TRYING... TO CONNECT get_efg_simple_features \n";
   my $dba = $self->get_dbadaptor($self->EFG_FEATURE_DB); 
   $dba->disconnect_when_inactive(1);    
 
@@ -227,6 +245,14 @@ sub get_efg_simple_features {
   print "Fetching EFG domain data from " . $dba->dbname . "\@" . $dba->host . ".... \n";
 
   my @simple_features = @{ $set_db->fetch_all_by_Slice($self->query) };
+  
+  # print "BK DEBUG::lincRNAFinder::get_efg_simple_features simple_features " . scalar(@simple_features) . "\n";
+
+  # print "BK::###Dumper start type printing\n";
+  # print Dumper(\@simple_features);
+  # print "BK::###Dumper end type printing\n";
+
+  
   return  $self->convert_simple_features(\@simple_features); 
 }
 
@@ -238,19 +264,26 @@ sub convert_simple_features {
   my @converted_sf;  
   my @simple_features= @$sf;  
 
+
+  print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: convert simple features:: !! ...\n\n";
+
   print scalar(@simple_features ) . " retrieved \n" ; 
   my %lg_names ;  
   my @filtered_sf ;
   for my $sf ( @simple_features ) { 
-    for my $lg ( @{ $self->EFG_FEATURE_NAMES } ) { 
-      if ( $sf->analysis ) {  
-         if ( $sf->analysis->logic_name =~m/^$lg$/) {
+    # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: convert simple features::sf $sf !! ...\n\n";
+    # DEBUG_BK:: BK Comment all the following
+    # for my $lg ( @{ $self->EFG_FEATURE_NAMES } ) { 
+      # if ( $sf->analysis ) {  
+         # if ( $sf->analysis->logic_name =~m/^$lg$/) {
            push @filtered_sf, $sf ; 
-         } 
-      } else {  
-         throw ("sf with dbID " . $sf->dbID . " does not have a logic_name , this might be 'cause it has just been created ...! \n") ; 
-      } 
-    }
+	       # print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder: convert simple features::lg $lg !! ...\n\n";	
+
+         # } 
+      # } else {  
+      #   throw ("sf with dbID " . $sf->dbID . " does not have a logic_name , this might be 'cause it has just been created ...! \n") ; 
+      # } 
+    # }
   } 
   @simple_features = @filtered_sf ;
   print " after filtering by logic names got " . scalar(@simple_features ) . " features left ...\n" ; 
@@ -266,9 +299,9 @@ sub convert_simple_features {
     $f_start = $f->start - $offset ;
     $f_end = $f->end+ $offset ;
 
-    #print $f->strand . " : BEFORE S : " . $f->start . "  --->   $f_start \n" ; 
-    #print $f->strand . " : BEFORE E : " . $f->end  . "  --->   $f_end  \n ";   
-    #print $f->strand . " : BEFORE L : " . ($f->end - $f->start )   . "  ---> NOW :  " . ($f_end - $f_start) . " \n ";  
+    # print $f->strand . " : BEFORE S : " . $f->start . "  --->   $f_start \n" ; 
+    # print $f->strand . " : BEFORE E : " . $f->end  . "  --->   $f_end  \n ";   
+    print $f->strand . " : BEFORE L : " . ($f->end - $f->start )   . "  ---> NOW :  " . ($f_end - $f_start) . " \n ";  
 
        my $ex = new Bio::EnsEMBL::Exon(
       -START     => $f_start,
@@ -284,13 +317,19 @@ sub convert_simple_features {
     $tran->analysis($f->analysis); 
     my $gene = new Bio::EnsEMBL::Gene() ;
     $gene->add_Transcript($tran) ;
-    $gene->biotype("efg") ; # don't change this biotype 
-    $gene->biotype("efg") ; # don't change this biotype 
+    
+    print "\n\n DEBUG_BK::RunnableDB::lincRNAFinder biotype:: " . $gene->biotype .  " !! ...\n\n";
+    
+    # $gene->biotype("efg") ; # don't change this biotype 
+    # $gene->biotype("efg") ; # don't change this biotype 
     $gene->description($f->display_label);
     $gene->dbID($f->dbID) ; 
     $gene->analysis($f->analysis); 
     push @converted_sf, $gene ;
   }
+
+  print " DEBUG_BK::RunnableDB::lincRNAFinder  " . scalar(@simple_features ) . " features left ...\n" ; 
+ 
   return \@converted_sf;
 }
 

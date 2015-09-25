@@ -53,8 +53,8 @@ use Bio::EnsEMBL::Analysis::Tools::GeneBuildUtils::GeneUtils qw(compute_6frame_t
 use Bio::EnsEMBL::Analysis::Tools::GeneBuildUtils::TranslationUtils; 
 use Bio::EnsEMBL::Analysis::Tools::GeneBuildUtils::GeneUtils qw(Gene_info get_multi_Exon_Genes get_single_Exon_Genes  ); 
 use Bio::EnsEMBL::Analysis::Tools::Algorithms::ClusterUtils; 
-use Bio::EnsEMBL::Analysis::Runnable::Blast; 
-use Bio::EnsEMBL::Analysis::Runnable::ProteinAnnotation::Pfam; 
+# use Bio::EnsEMBL::Analysis::Runnable::Blast; 
+# use Bio::EnsEMBL::Analysis::Runnable::ProteinAnnotation::Pfam; 
 use Bio::EnsEMBL::Analysis::Tools::FilterBPlite;   
 use Bio::EnsEMBL::DBSQL::DBAdaptor;
 use Bio::EnsEMBL::Registry; 
@@ -71,8 +71,16 @@ sub new{
   my($linc_rna_genes, $ensembl_genes ) = 
     rearrange([qw(linc_rna_genes ensembl_genes )], @args); 
 
+  print "BKDEBUG::runnable::lincRNAEvaluator 1 NEW obj \n";
+
   $self->linc_rna_genes($linc_rna_genes); 
   $self->ensembl_genes($ensembl_genes); 
+  
+  print "BKDEBUG::runnable::lincRNAEvaluator  NEW obj   Found rna: " . scalar(@$linc_rna_genes) . " \n"; 
+  print "BKDEBUG::runnable::lincRNAEvaluator  NEW obj   Found embl: " . scalar(@$ensembl_genes) . " \n";
+  print "BKDEBUG::runnable::lincRNAEvaluator  NEW obj \n";
+  
+  
   return $self;
 } 
 
@@ -80,6 +88,9 @@ sub new{
 
 sub run{
   my ($self) = @_; 
+
+  print "BKDEBUG::runnable::lincRNAEvaluator 1 \n";
+
 
   # NOTES ON cluster_Genes method:
  
@@ -108,6 +119,9 @@ sub run{
   print " then cluster the groups against each other.\n";
 
   my ( $prot_feat_genes, $other ) = $self->sort_linc_rna_genes;  
+
+  print "BKDEBUG::runnableDB::lincRNAEvaluator 2 \n";
+
 
   print "  Found " . scalar(@$other) . " lincRNA candidate genes without protein domains\n" ;    
   print "  Found " . scalar(@$prot_feat_genes) . " lincRNA candidate genes with protein domains\n\n" ;     
@@ -938,8 +952,13 @@ sub set_2_prot_genes{
   return $self->{'set_2_genes'};
 }  
 
+ 
 sub efg_simple_feature_genes{
   my ($self, $arg) = @_;
+  print "BK::lincRNAEvaluator::efg_simple_feature_genes   HELLOOOO I am there!! \n";
+  print "BK::lincRNAEvaluator::efg_simple_feature_genes:: $arg \n";
+  
+  # die("BK::lincRNAEvaluator::efg_simple_feature_genes:: I am dieing!\n");
   if($arg){
     $self->{'efg_simple_feature_genes'} = $arg;
   }
